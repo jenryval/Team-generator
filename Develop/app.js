@@ -4,13 +4,9 @@ const Intern = require("./lib/Intern");
 const inquirer = require("inquirer");
 const path = require("path");
 const fs = require("fs");
-
 const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
-
 const render = require("./lib/htmlRenderer");
-
-
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
 let currentEmployeeQuestion; 
@@ -39,7 +35,8 @@ const internQuestion = [
     },
 ]
 function teamMembers(){
-    inquirer
+    //move first question to its own
+    inquirer    
         .prompt([
             {
                 type: 'list',
@@ -63,6 +60,17 @@ function teamMembers(){
                 message: 'Please enter your email address.',
             },
         ]).then((response) => {
+            // console.log(response)
+            // if (response.position === 'Quit') {
+            //     render()
+            // }
+            const html = response.position === 'Quit' && render(allEmployees)
+            fs.writeFile('main.html', html , (err) => {
+               if (err){
+                   throw err 
+               }else {
+                   console.log('you made an HTML!!')
+               }})
             switch (response.position){
                 case 'Engineer': 
                     currentEmployeeQuestion = engineerQuestion;
@@ -79,23 +87,26 @@ function teamMembers(){
             currentEmployee = response;
             inquirer    
         .prompt(currentEmployeeQuestion).then((response) => {
+            // console.log(response)
+            // console.log(currentEmployee)
             switch (currentEmployee.position){
                 case 'Engineer': 
-                    newEmployee =  new Engineer(response.name, response.id, response.email, response.gitHub);                
+                    newEmployee =  new Engineer(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.gitHub);                
                     break;
                 case 'Intern':
-                    newEmployee = new Intern(response.name, response.id, response.email, response.school)              
+                    newEmployee = new Intern(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.school)              
                     break;
                 case 'Manager':
-                    newEmployee = new Manager(response.name, response.id, response.email, response.officeNumber)                    
+                    newEmployee = new Manager(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.officeNumber)                    
                     break;
             }
+            console.log(newEmployee)
             allEmployees.push(newEmployee);
             console.log(allEmployees);
         }).then( () => teamMembers());
         })
 }
-teamMembers()
+teamMembers();
 
 
 // After the user has input all employees desired, call the `render` function (required
@@ -113,9 +124,12 @@ teamMembers()
 
 
 
+
 // HINT: each employee type (manager, engineer, or intern) has slightly different
 // information; write your code to ask different questions via inquirer depending on
 // employee type.
+
+
 
 
 
