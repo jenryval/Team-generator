@@ -13,15 +13,95 @@ const render = require("./lib/htmlRenderer");
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
-const newTeamMembers = () => 
-inquirer.prompt({
-
-})
+let currentEmployeeQuestion; 
+let currentEmployee;
+let newEmployee;
+let allEmployees = [];
+const managerQuestion = [
+    {
+        type: 'input',
+        name: 'officeNumber',
+        message: 'Please enter your office number.',
+    }
+]
+const engineerQuestion = [
+    {
+        type: 'input',
+        name: 'gitHub',
+        message: 'Please enter your GitHub username.',
+    },
+]
+const internQuestion = [
+    {
+        type: 'input',
+        name: 'school',
+        message: 'Please enter the name of your school.',
+    },
+]
+function teamMembers(){
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'position',
+                message: 'Please select your position with the company',
+                choices: ['Engineer', 'Intern', 'Manager', 'Quit']
+            },
+            {
+                type: 'input',
+                name: 'name',
+                message: 'What is your name?.',
+            },
+            {
+                type: 'input',
+                name: 'id',
+                message: 'Please enter your ID number.',
+            },
+            {
+                type: 'input',
+                name: 'email',
+                message: 'Please enter your email address.',
+            },
+        ]).then((response) => {
+            switch (response.position){
+                case 'Engineer': 
+                    currentEmployeeQuestion = engineerQuestion;
+                    break;
+                case 'Intern':
+                    currentEmployeeQuestion = internQuestion;
+                    break;
+                case 'Manager':
+                    currentEmployeeQuestion = managerQuestion;
+                    break;
+                case 'Quit':
+                    return;
+            }
+            currentEmployee = response;
+            inquirer    
+        .prompt(currentEmployeeQuestion).then((response) => {
+            switch (currentEmployee.position){
+                case 'Engineer': 
+                    newEmployee =  new Engineer(response.name, response.id, response.email, response.gitHub);                
+                    break;
+                case 'Intern':
+                    newEmployee = new Intern(response.name, response.id, response.email, response.school)              
+                    break;
+                case 'Manager':
+                    newEmployee = new Manager(response.name, response.id, response.email, response.officeNumber)                    
+                    break;
+            }
+            allEmployees.push(newEmployee);
+            console.log(allEmployees);
+        }).then( () => teamMembers());
+        })
+}
+teamMembers()
 
 
 // After the user has input all employees desired, call the `render` function (required
 // above) and pass in an array containing all employee objects; the `render` function will
 // generate and return a block of HTML including templated divs for each employee!
+
 
 
 
