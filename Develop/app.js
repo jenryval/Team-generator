@@ -35,7 +35,6 @@ const internQuestion = [
     },
 ]
 function teamMembers(){
-    //move first question to its own
     inquirer    
         .prompt([
             {
@@ -44,97 +43,75 @@ function teamMembers(){
                 message: 'Please select your position with the company',
                 choices: ['Engineer', 'Intern', 'Manager', 'Quit']
             },
-            {
-                type: 'input',
-                name: 'name',
-                message: 'What is your name?.',
-            },
-            {
-                type: 'input',
-                name: 'id',
-                message: 'Please enter your ID number.',
-            },
-            {
-                type: 'input',
-                name: 'email',
-                message: 'Please enter your email address.',
-            },
         ]).then((response) => {
-            // console.log(response)
-            // if (response.position === 'Quit') {
-            //     render()
-            // }
-            const html = response.position === 'Quit' && render(allEmployees)
-            fs.writeFile('main.html', html , (err) => {
-               if (err){
-                   throw err 
-               }else {
-                   console.log('you made an HTML!!')
-               }})
-            switch (response.position){
-                case 'Engineer': 
-                    currentEmployeeQuestion = engineerQuestion;
-                    break;
-                case 'Intern':
-                    currentEmployeeQuestion = internQuestion;
-                    break;
-                case 'Manager':
-                    currentEmployeeQuestion = managerQuestion;
-                    break;
-                case 'Quit':
+            if (response.position === 'Quit') {
+                try {
+                    fs.writeFileSync(outputPath, render(allEmployees))
+                    console.log('Congrats you made a team!');
                     return;
+                } catch(err) {
+                    console.error(err);
+                }
             }
-            currentEmployee = response;
-            inquirer    
-        .prompt(currentEmployeeQuestion).then((response) => {
-            // console.log(response)
-            // console.log(currentEmployee)
-            switch (currentEmployee.position){
-                case 'Engineer': 
-                    newEmployee =  new Engineer(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.gitHub);                
-                    break;
-                case 'Intern':
-                    newEmployee = new Intern(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.school)              
-                    break;
-                case 'Manager':
-                    newEmployee = new Manager(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.officeNumber)                    
-                    break;
+            else {
+                inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'name',
+                        message: 'What is your name?.',
+                    },
+                    {
+                        type: 'input',
+                        name: 'id',
+                        message: 'Please enter your ID number.',
+                    },
+                    {
+                        type: 'input',
+                        name: 'email',
+                        message: 'Please enter your email address.',
+                    },
+                ]).then(response2 => {
+                    currentEmployee = {
+                        ...response,
+                        ...response2
+                    }
+                    switch (response.position){
+                        case 'Engineer': 
+                            currentEmployeeQuestion = engineerQuestion;
+                            continuePrompt();
+                            break;
+                        case 'Intern':
+                            currentEmployeeQuestion = internQuestion;
+                            continuePrompt();
+                            break;
+                        case 'Manager':
+                            currentEmployeeQuestion = managerQuestion;
+                            continuePrompt();
+                            break;
+                    }
+                })
             }
-            console.log(newEmployee)
-            allEmployees.push(newEmployee);
-            console.log(allEmployees);
-        }).then( () => teamMembers());
         })
+}
+function continuePrompt() {
+    inquirer    
+    .prompt(currentEmployeeQuestion).then((response) => {
+        switch (currentEmployee.position){
+            case 'Engineer': 
+                newEmployee =  new Engineer(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.gitHub);                
+                break;
+            case 'Intern':
+                newEmployee = new Intern(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.school)              
+                break;
+            case 'Manager':
+                newEmployee = new Manager(currentEmployee.name, currentEmployee.id, currentEmployee.email, response.officeNumber)                    
+                break;
+        }
+        console.log(newEmployee)
+        allEmployees.push(newEmployee);
+        console.log(allEmployees);
+    }).then( () => teamMembers());
 }
 teamMembers();
 
 
-// After the user has input all employees desired, call the `render` function (required
-// above) and pass in an array containing all employee objects; the `render` function will
-// generate and return a block of HTML including templated divs for each employee!
-
-
-
-
-// After you have your html, you're now ready to create an HTML file using the HTML
-// returned from the `render` function. Now write it to a file named `team.html` in the
-// `output` folder. You can use the variable `outputPath` above target this location.
-// Hint: you may need to check if the `output` folder exists and create it if it
-// does not.
-
-
-
-
-// HINT: each employee type (manager, engineer, or intern) has slightly different
-// information; write your code to ask different questions via inquirer depending on
-// employee type.
-
-
-
-
-
-// HINT: make sure to build out your classes first! Remember that your Manager, Engineer,
-// and Intern classes should all extend from a class named Employee; see the directions
-// for further information. Be sure to test out each class and verify it generates an
-// object with the correct structure and methods. This structure will be crucial in order
-// for the provided `render` function to work! ```
